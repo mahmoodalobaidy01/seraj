@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../controllers/app_controller.dart';
-import '../controllers/image_proccessing.dart';
 import 'qr_scan_screen.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -82,15 +80,6 @@ class LoginScreen extends StatelessWidget {
                           onPressed: () =>
                               Get.to(() => const QRScannerScreen()),
                         ),
-                        const SizedBox(height: 20),
-                        TextButton.icon(
-                          icon: const Icon(Icons.image, color: Colors.white70),
-                          label: const Text(
-                            'Upload Image with QR Code',
-                            style: TextStyle(color: Colors.white70),
-                          ),
-                          onPressed: () => _uploadQRCodeImage(controller),
-                        ),
                       ],
                     ),
             ),
@@ -98,27 +87,5 @@ class LoginScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _uploadQRCodeImage(AppController controller) async {
-    try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 70,
-      );
-
-      if (pickedFile != null) {
-        Get.to(() => QRImageProcessingScreen(imagePath: pickedFile.path));
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to process image: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
   }
 }

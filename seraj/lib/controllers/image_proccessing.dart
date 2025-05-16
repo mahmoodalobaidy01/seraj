@@ -1,124 +1,221 @@
-import 'dart:io';
+// import 'dart:io';
+// import 'dart:typed_data';
+// import 'package:flutter/material.dart';
+// import 'package:get/get.dart';
+// import 'package:mobile_scanner/mobile_scanner.dart';
+// import '../controllers/login_controller.dart';
 
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:seraj/controllers/app_controller.dart';
+// class QRImageProcessingScreen extends StatefulWidget {
+//   final String imagePath;
 
-import '../screens/main_screen.dart';
+//   const QRImageProcessingScreen({Key? key, required this.imagePath})
+//       : super(key: key);
 
-class QRImageProcessingScreen extends StatefulWidget {
-  final String imagePath;
+//   @override
+//   State<QRImageProcessingScreen> createState() =>
+//       _QRImageProcessingScreenState();
+// }
 
-  const QRImageProcessingScreen({Key? key, required this.imagePath})
-      : super(key: key);
+// class _QRImageProcessingScreenState extends State<QRImageProcessingScreen> {
+//   final loginController = Get.put(LoginController());
+//   bool isProcessing = true;
+//   String status = "Processing QR code...";
+//   String debugLog = "";
 
-  @override
-  State<QRImageProcessingScreen> createState() =>
-      _QRImageProcessingScreenState();
-}
+//   @override
+//   void initState() {
+//     super.initState();
+//     _processQRCode();
+//   }
 
-class _QRImageProcessingScreenState extends State<QRImageProcessingScreen> {
-  bool isProcessing = true;
-  bool hasError = false;
-  String errorMessage = '';
+//   Future<void> _processQRCode() async {
+//     try {
+//       _log("Starting QR processing");
 
-  @override
-  void initState() {
-    super.initState();
-    _processImage();
-  }
+//       // Check if file exists
+//       final File file = File(widget.imagePath);
+//       if (!await file.exists()) {
+//         _updateStatus("Error: Image file not found", isError: true);
+//         return;
+//       }
 
-  Future<void> _processImage() async {
-    try {
-      // Display image first and simulate processing for demo
-      await Future.delayed(const Duration(seconds: 2));
+//       final fileSize = await file.length();
+//       _log("File size: $fileSize bytes");
 
-      // Simulate finding a QR code for demo purposes
-      final qrCode = "SERAJ:123|Demo User|demo@example.com";
+//       // Try scanning with mobile_scanner
+//       _updateStatus("Scanning QR code...");
+//       await _scanWithMobileScanner(widget.imagePath);
+//     } catch (e) {
+//       _log("Error: $e");
+//       _updateStatus("Error processing QR code", isError: true);
+//     }
+//   }
 
-      final appController = Get.find<AppController>();
-      final success = await appController.login(qrCode);
+//   Future<void> _scanWithMobileScanner(String imagePath) async {
+//     try {
+//       _log("Using mobile_scanner to scan image");
 
-      if (success) {
-        Get.offAll(() => const MainScreen());
-      } else {
-        setState(() {
-          isProcessing = false;
-          hasError = true;
-          errorMessage = 'Invalid QR code';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        isProcessing = false;
-        hasError = true;
-        errorMessage = 'Error processing image: ${e.toString()}';
-      });
-    }
-  }
+//       // Create mobile scanner controller
+//       final controller = MobileScannerController();
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Processing QR Code'),
-        backgroundColor: Colors.blue.shade800,
-        foregroundColor: Colors.white,
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.file(
-                  File(widget.imagePath),
-                  height: 250,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(height: 30),
-              if (isProcessing) ...[
-                const CircularProgressIndicator(),
-                const SizedBox(height: 20),
-                const Text(
-                  'Processing image...',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ] else if (hasError) ...[
-                Icon(Icons.error_outline, color: Colors.red, size: 60),
-                const SizedBox(height: 20),
-                Text(
-                  errorMessage,
-                  style: const TextStyle(color: Colors.red, fontSize: 16),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade800,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 30, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  onPressed: () => Get.back(),
-                  child: const Text('Go Back'),
-                ),
-                const SizedBox(height: 10),
-                TextButton(
-                  onPressed: () => _processImage(),
-                  child: const Text('Try Again'),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+//       // Analyze the image file
+//       final bool success = await controller.analyzeImage(imagePath);
+
+//       if (success) {
+//         // Get the barcodes from the controller
+//         final List<Barcode> barcodes = controller.barcodes as List<Barcode>;
+
+//         if (barcodes.isNotEmpty) {
+//           // Extract the QR code content
+//           final String? qrContent = barcodes.first.rawValue;
+
+//           if (qrContent != null && qrContent.isNotEmpty) {
+//             _log("QR code detected successfully!");
+//             await _processQRContent(qrContent);
+//             return;
+//           }
+//         }
+//       }
+
+//       // If no QR code detected
+//       _updateStatus("No QR code detected in the image", isError: true);
+//     } catch (e) {
+//       _log("Mobile scanner error: $e");
+//       _updateStatus("QR scanning failed", isError: true);
+//     }
+//   }
+
+//   // Process the QR content once detected
+//   Future<void> _processQRContent(String qrContent) async {
+//     _updateStatus("QR code detected! Logging in...");
+
+//     // Mask content for privacy in logs
+//     String maskedContent = qrContent;
+//     if (qrContent.length > 20) {
+//       maskedContent =
+//           '${qrContent.substring(0, 10)}...${qrContent.substring(qrContent.length - 10)}';
+//     }
+//     _log("QR Content (masked): $maskedContent");
+
+//     try {
+//       await loginController.loginWithQR(qrContent);
+//       _updateStatus("Login successful!", isSuccess: true);
+//     } catch (e) {
+//       _log("Login error: $e");
+//       _updateStatus("Login failed: $e", isError: true);
+//     }
+//   }
+
+//   // Update status with optional error handling
+//   void _updateStatus(String message,
+//       {bool isError = false, bool isSuccess = false}) {
+//     setState(() {
+//       status = message;
+//       isProcessing = !(isError || isSuccess);
+//     });
+
+//     if (isError) {
+//       Get.snackbar(
+//         'Error',
+//         message,
+//         backgroundColor: Colors.red,
+//         colorText: Colors.white,
+//         duration: const Duration(seconds: 5),
+//       );
+//     } else if (isSuccess) {
+//       Get.snackbar(
+//         'Success',
+//         message,
+//         backgroundColor: Colors.green,
+//         colorText: Colors.white,
+//         duration: const Duration(seconds: 3),
+//       );
+//     }
+
+//     _log(message);
+//   }
+
+//   // Add to debug log
+//   void _log(String message) {
+//     print("QR Debug: $message");
+//     setState(() {
+//       debugLog += "\n$message";
+//     });
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: Colors.blue.shade800,
+//       body: SafeArea(
+//         child: Padding(
+//           padding: const EdgeInsets.all(16.0),
+//           child: Column(
+//             mainAxisAlignment: MainAxisAlignment.center,
+//             children: [
+//               if (isProcessing)
+//                 const CircularProgressIndicator(color: Colors.white),
+//               const SizedBox(height: 24),
+//               Text(
+//                 status,
+//                 style: const TextStyle(
+//                     color: Colors.white,
+//                     fontSize: 20,
+//                     fontWeight: FontWeight.bold),
+//                 textAlign: TextAlign.center,
+//               ),
+//               const SizedBox(height: 32),
+//               if (!isProcessing)
+//                 Row(
+//                   mainAxisAlignment: MainAxisAlignment.center,
+//                   children: [
+//                     ElevatedButton(
+//                       onPressed: () => Get.back(),
+//                       style: ElevatedButton.styleFrom(
+//                         backgroundColor: Colors.white,
+//                         foregroundColor: Colors.blue.shade800,
+//                         padding: const EdgeInsets.symmetric(
+//                             horizontal: 24, vertical: 12),
+//                       ),
+//                       child: const Text('Back', style: TextStyle(fontSize: 16)),
+//                     ),
+//                     const SizedBox(width: 16),
+//                     ElevatedButton(
+//                       onPressed: _processQRCode,
+//                       style: ElevatedButton.styleFrom(
+//                         backgroundColor: Colors.green,
+//                         foregroundColor: Colors.white,
+//                         padding: const EdgeInsets.symmetric(
+//                             horizontal: 24, vertical: 12),
+//                       ),
+//                       child: const Text('Try Again',
+//                           style: TextStyle(fontSize: 16)),
+//                     ),
+//                   ],
+//                 ),
+//               const SizedBox(height: 24),
+//               Expanded(
+//                 child: Container(
+//                   padding: const EdgeInsets.all(12),
+//                   decoration: BoxDecoration(
+//                     color: Colors.black54,
+//                     borderRadius: BorderRadius.circular(8),
+//                   ),
+//                   child: SingleChildScrollView(
+//                     child: Text(
+//                       "Debug Log:$debugLog",
+//                       style: const TextStyle(
+//                           color: Colors.white70,
+//                           fontSize: 12,
+//                           fontFamily: "monospace"),
+//                     ),
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }

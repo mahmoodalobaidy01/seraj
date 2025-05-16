@@ -11,8 +11,12 @@ dependencies:
     sdk: flutter
   get: ^4.6.5
   mobile_scanner: ^3.5.7
+  qr_code_scanner_plus: ^2.0.6
+  zxing2: 0.2.3 
+  image: ^4.0.17
   image_picker: ^1.0.4
   http: ^1.1.0
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
