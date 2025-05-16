@@ -1,3 +1,5 @@
+main url:
+https://khayalstudio.com/siraj/api
 method:post
 url:/login
 request:email,password
