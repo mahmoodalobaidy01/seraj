@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:seraj/controllers/login_controller.dart';
 
 import '../controllers/app_controller.dart';
 import 'main_screen.dart';
@@ -15,6 +16,7 @@ class QRScannerScreen extends StatefulWidget {
 class _QRScannerScreenState extends State<QRScannerScreen>
     with WidgetsBindingObserver {
   MobileScannerController controller = MobileScannerController();
+  LoginController loginController = LoginController();
   bool isProcessing = false;
   bool hasPermission = true;
 
@@ -122,17 +124,27 @@ class _QRScannerScreenState extends State<QRScannerScreen>
 
                 final qrCode = barcodes.first.rawValue!;
                 final appController = Get.find<AppController>();
-                final success = await appController.login(qrCode);
+                final success = await loginController.loginWithQR(qrCode);
+                print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+
+                print(success);
 
                 if (success) {
+                  print("ssssssssssssssssssssssssssssssss");
+
+                  print(qrCode);
                   Get.offAll(() => const MainScreen());
                 } else {
                   isProcessing = false;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Invalid QR code, please try again'),
-                      backgroundColor: Colors.red,
-                    ),
+                  Get.snackbar(
+                    'Invalid QR Code',
+                    'Please try again',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.red,
+                    colorText: Colors.white,
+                    duration: const Duration(seconds: 3),
+                    margin: const EdgeInsets.only(
+                        bottom: 20.0, left: 20.0, right: 20.0),
                   );
                 }
               }
