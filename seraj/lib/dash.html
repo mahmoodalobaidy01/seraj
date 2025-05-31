@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Management Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none; }
+        .section-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .section-content.open { max-height: 2000px; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-md w-96">
+            <h1 class="text-2xl font-bold mb-6 text-center">Login to Dashboard</h1>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    <input type="text" value="admin@admin.admin" disabled class="w-full p-2 border rounded bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Password</label>
+                    <input type="password" value="password" disabled class="w-full p-2 border rounded bg-gray-50">
+                </div>
+                <button onclick="login()" id="loginBtn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50">
+                    Login
+                </button>
+                <div id="loginMessage" class="p-2 bg-red-100 text-red-700 rounded text-sm hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="hidden">
+        <!-- Header -->
+        <div class="bg-white shadow-sm border-b p-4">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-800">API Dashboard</h1>
+                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto p-6">
+            <!-- Messages -->
+            <div id="message" class="mb-4 p-3 bg-green-100 text-green-700 rounded hidden"></div>
+            <div id="loading" class="mb-4 p-3 bg-blue-100 text-blue-700 rounded hidden">Processing request...</div>
+
+            <!-- Sections -->
+            <div class="space-y-4">
+                <!-- Teacher Management -->
+                <div class="border rounded-lg">
+                    <button onclick="toggleSection('teacher')" class="w-full p-4 text-left font-semibold bg-gray-50 hover:bg-gray-100 flex items-center justify-between">
+                        Teacher Management
+                        <span id="teacherIcon">▼</span>
+                    </button>
+                    <div id="teacherContent" class="section-content">
+                        <div class="p-4 border-t space-y-6">
+                            <!-- Create Teacher -->
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">➕ Create Teacher</h3>
+                                <form id="createTeacherForm" onsubmit="createTeacher(event)" class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="text" name="teacher_name" placeholder="Teacher Name" class="p-2 border rounded" required>
+                                        <input type="date" name="teacher_birth" placeholder="Birth Date" class="p-2 border rounded">
+                                        <select name="teacher_gender" class="p-2 border rounded">
+                                            <option value="">Select Gender</option>
+                                            <option value="1">Male</option>
+                                            <option value="0">Female</option>
+                                        </select>
+                                        <input type="text" name="teacher_position" placeholder="Position" class="p-2 border rounded">
+                                        <input type="text" name="teacher_image" placeholder="Image URL" class="p-2 border rounded">
+                                        <input type="text" name="teacher_address" placeholder="Address" class="p-2 border rounded">
+                                        <input type="text" name="teacher_phone" placeholder="Phone" class="p-2 border rounded">
+                                        <select name="teacher_status" class="p-2 border rounded">
+                                            <option value="">Select Status</option>
+                                            <option value="1">Active</option>
+                                            <option value="0">Inactive</option>
+                                        </select>
+                                        <select name="teacher_leader" class="p-2 border rounded">
+                                            <option value="">Is Leader?</option>
+                                            <option value="1">Yes</option>
+                                            <option value="0">No</option>
+                                        </select>
+                                        <input type="text" name="created_by" placeholder="Created By" class="p-2 border rounded">
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                        💾 Create Teacher
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Edit Teacher -->
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">✏️ Edit Teacher</h3>
+                                <div class="mb-4">
+                                    <input type="number" id="editTeacherId" placeholder="Enter Teacher ID to edit" class="p-2 border rounded">
+                                </div>
+                                <form id="editTeacherForm" onsubmit="editTeacher(event)" class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="text" name="teacher_name" placeholder="Teacher Name" class="p-2 border rounded" required>
+                                        <input type="date" name="teacher_birth" placeholder="Birth Date" class="p-2 border rounded">
+                                        <select name="teacher_gender" class="p-2 border rounded">
+                                            <option value="">Select Gender</option>
+                                            <option value="1">Male</option>
+                                            <option value="0">Female</option>
+                                        </select>
+                                        <input type="text" name="teacher_position" placeholder="Position" class="p-2 border rounded">
+                                        <input type="text" name="teacher_image" placeholder="Image URL" class="p-2 border rounded">
+                                        <input type="text" name="teacher_address" placeholder="Address" class="p-2 border rounded">
+                                        <input type="text" name="teacher_phone" placeholder="Phone" class="p-2 border rounded">
+                                        <select name="teacher_status" class="p-2 border rounded">
+                                            <option value="">Select Status</option>
+                                            <option value="1">Active</option>
+                                            <option value="0">Inactive</option>
+                                        </select>
+                                        <select name="teacher_leader" class="p-2 border rounded">
+                                            <option value="">Is Leader?</option>
+                                            <option value="1">Yes</option>
+                                            <option value="0">No</option>
+                                        </select>
+                                        <input type="text" name="created_by" placeholder="Created By" class="p-2 border rounded">
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                        💾 Update Teacher
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Management -->
+                <div class="border rounded-lg">
+                    <button onclick="toggleSection('student')" class="w-full p-4 text-left font-semibold bg-gray-50 hover:bg-gray-100 flex items-center justify-between">
+                        Student Management
+                        <span id="studentIcon">▼</span>
+                    </button>
+                    <div id="studentContent" class="section-content">
+                        <div class="p-4 border-t space-y-6">
+                            <!-- Create Student -->
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">➕ Create Student</h3>
+                                <form id="createStudentForm" onsubmit="createStudent(event)" class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="text" name="student_name" placeholder="Student Name" class="p-2 border rounded" required>
+                                        <input type="date" name="student_birth" placeholder="Birth Date" class="p-2 border rounded">
+                                        <select name="student_gender" class="p-2 border rounded">
+                                            <option value="">Select Gender</option>
+                                            <option value="1">Male</option>
+                                            <option value="0">Female</option>
+                                        </select>
+                                        <input type="text" name="student_image" placeholder="Image URL" class="p-2 border rounded">
+                                        <input type="text" name="student_address" placeholder="Address" class="p-2 border rounded">
+                                        <input type="text" name="student_parent_phone" placeholder="Parent Phone" class="p-2 border rounded">
+                                        <input type="number" name="stage_id" placeholder="Stage ID" class="p-2 border rounded">
+                                        <input type="text" name="student_tracking" placeholder="Tracking" class="p-2 border rounded">
+                                        <input type="text" name="student_attitude" placeholder="Attitude" class="p-2 border rounded">
+                                        <input type="number" name="student_rating" placeholder="Rating" class="p-2 border rounded">
+                                        <input type="number" name="student_fee" placeholder="Fee" class="p-2 border rounded">
+                                        <input type="text" name="student_notes" placeholder="Notes" class="p-2 border rounded">
+                                        <select name="student_status" class="p-2 border rounded">
+                                            <option value="">Select Status</option>
+                                            <option value="1">Active</option>
+                                            <option value="0">Inactive</option>
+                                        </select>
+                                        <input type="text" name="student_document" placeholder="Document" class="p-2 border rounded">
+                                        <input type="text" name="created_by" placeholder="Created By" class="p-2 border rounded">
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                        💾 Create Student
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Edit Student -->
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">✏️ Edit Student</h3>
+                                <div class="mb-4">
+                                    <input type="number" id="editStudentId" placeholder="Enter Student ID to edit" class="p-2 border rounded">
+                                </div>
+                                <form id="editStudentForm" onsubmit="editStudent(event)" class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="text" name="student_name" placeholder="Student Name" class="p-2 border rounded" required>
+                                        <input type="date" name="student_birth" placeholder="Birth Date" class="p-2 border rounded">
+                                        <select name="student_gender" class="p-2 border rounded">
+                                            <option value="">Select Gender</option>
+                                            <option value="1">Male</option>
+                                            <option value="0">Female</option>
+                                        </select>
+                                        <input type="text" name="student_image" placeholder="Image URL" class="p-2 border rounded">
+                                        <input type="text" name="student_address" placeholder="Address" class="p-2 border rounded">
+                                        <input type="text" name="student_parent_phone" placeholder="Parent Phone" class="p-2 border rounded">
+                                        <input type="number" name="stage_id" placeholder="Stage ID" class="p-2 border rounded">
+                                        <input type="text" name="student_tracking" placeholder="Tracking" class="p-2 border rounded">
+                                        <input type="text" name="student_attitude" placeholder="Attitude" class="p-2 border rounded">
+                                        <input type="number" name="student_rating" placeholder="Rating" class="p-2 border rounded">
+                                        <input type="number" name="student_fee" placeholder="Fee" class="p-2 border rounded">
+                                        <input type="text" name="student_notes" placeholder="Notes" class="p-2 border rounded">
+                                        <select name="student_status" class="p-2 border rounded">
+                                            <option value="">Select Status</option>
+                                            <option value="1">Active</option>
+                                            <option value="0">Inactive</option>
+                                        </select>
+                                        <input type="text" name="student_document" placeholder="Document" class="p-2 border rounded">
+                                        <input type="text" name="created_by" placeholder="Created By" class="p-2 border rounded">
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                        💾 Update Student
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage Management -->
+                <div class="border rounded-lg">
+                    <button onclick="toggleSection('stage')" class="w-full p-4 text-left font-semibold bg-gray-50 hover:bg-gray-100 flex items-center justify-between">
+                        Stage Management
+                        <span id="stageIcon">▼</span>
+                    </button>
+                    <div id="stageContent" class="section-content">
+                        <div class="p-4 border-t space-y-6">
+                            <!-- Create Stage -->
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">➕ Create Stage</h3>
+                                <form id="createStageForm" onsubmit="createStage(event)" class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="number" name="teacher_id" placeholder="Teacher ID" class="p-2 border rounded" required>
+                                        <input type="text" name="stage_class" placeholder="Stage Class" class="p-2 border rounded" required>
+                                        <input type="text" name="stage_branch" placeholder="Stage Branch" class="p-2 border rounded">
+                                        <input type="text" name="created_by" placeholder="Created By" class="p-2 border rounded">
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                        💾 Create Stage
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Edit Stage -->
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">✏️ Edit Stage</h3>
+                                <div class="mb-4">
+                                    <input type="number" id="editStageId" placeholder="Enter Stage ID to edit" class="p-2 border rounded">
+                                </div>
+                                <form id="editStageForm" onsubmit="editStage(event)" class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="number" name="teacher_id" placeholder="Teacher ID" class="p-2 border rounded" required>
+                                        <input type="text" name="stage_class" placeholder="Stage Class" class="p-2 border rounded" required>
+                                        <input type="text" name="stage_branch" placeholder="Stage Branch" class="p-2 border rounded">
+                                        <input type="text" name="created_by" placeholder="Created By" class="p-2 border rounded">
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                        💾 Update Stage
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subject Management -->
+                <div class="border rounded-lg">
+                    <button onclick="toggleSection('subject')" class="w-full p-4 text-left font-semibold bg-gray-50 hover:bg-gray-100 flex items-center justify-between">
+                        Subject Management
+                        <span id="subjectIcon">▼</span>
+                    </button>
+                    <div id="subjectContent" class="section-content">
+                        <div class="p-4 border-t space-y-6">
+                            <!-- Create Subject -->
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">➕ Create Subject</h3>
+                                <form id="createSubjectForm" onsubmit="createSubject(event)" class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="number" name="stage_id" placeholder="Stage ID" class="p-2 border rounded" required>
+                                        <input type="text" name="subject_name" placeholder="Subject Name" class="p-2 border rounded" required>
+                                        <input type="number" name="subject_order" placeholder="Subject Order" class="p-2 border rounded">
+                                        <input type="text" name="created_by" placeholder="Created By" class="p-2 border rounded">
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                        💾 Create Subject
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Edit Subject -->
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">✏️ Edit Subject</h3>
+                                <div class="mb-4">
+                                    <input type="number" id="editSubjectId" placeholder="Enter Subject ID to edit" class="p-2 border rounded">
+                                </div>
+                                <form id="editSubjectForm" onsubmit="editSubject(event)" class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="number" name="stage_id" placeholder="Stage ID" class="p-2 border rounded" required>
+                                        <input type="text" name="subject_name" placeholder="Subject Name" class="p-2 border rounded" required>
+                                        <input type="number" name="subject_order" placeholder="Subject Order" class="p-2 border rounded">
+                                        <input type="text" name="created_by" placeholder="Created By" class="p-2 border rounded">
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                        💾 Update Subject
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Announcement Management -->
+                <div class="border rounded-lg">
+                    <button onclick="toggleSection('announcement')" class="w-full p-4 text-left font-semibold bg-gray-50 hover:bg-gray-100 flex items-center justify-between">
+                        Announcement Management
+                        <span id="announcementIcon">▼</span>
+                    </button>
+                    <div id="announcementContent" class="section-content">
+                        <div class="p-4 border-t space-y-6">
+                            <!-- Create Announcement -->
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">➕ Create Announcement</h3>
+                                <form id="createAnnouncementForm" onsubmit="createAnnouncement(event)" class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="number" name="subject_id" placeholder="Subject ID" class="p-2 border rounded" required>
+                                        <input type="text" name="announcement_title" placeholder="Announcement Title" class="p-2 border rounded" required>
+                                        <textarea name="announcement_description" placeholder="Description" class="p-2 border rounded col-span-2" rows="3"></textarea>
+                                        <input type="text" name="announcement_type" placeholder="Type" class="p-2 border rounded">
+                                        <input type="text" name="announcement_document" placeholder="Document URL" class="p-2 border rounded">
+                                        <input type="text" name="created_by" placeholder="Created By" class="p-2 border rounded">
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                        💾 Create Announcement
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Edit Announcement -->
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">✏️ Edit Announcement</h3>
+                                <div class="mb-4">
+                                    <input type="number" id="editAnnouncementId" placeholder="Enter Announcement ID to edit" class="p-2 border rounded">
+                                </div>
+                                <form id="editAnnouncementForm" onsubmit="editAnnouncement(event)" class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="number" name="subject_id" placeholder="Subject ID" class="p-2 border rounded" required>
+                                        <input type="text" name="announcement_title" placeholder="Announcement Title" class="p-2 border rounded" required>
+                                        <textarea name="announcement_description" placeholder="Description" class="p-2 border rounded col-span-2" rows="3"></textarea>
+                                        <input type="text" name="announcement_type" placeholder="Type" class="p-2 border rounded">
+                                        <input type="text" name="announcement_document" placeholder="Document URL" class="p-2 border rounded">
+                                        <input type="text" name="created_by" placeholder="Created By" class="p-2 border rounded">
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                        💾 Update Announcement
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exam Management -->
+                <div class="border rounded-lg">
+                    <button onclick="toggleSection('exam')" class="w-full p-4 text-left font-semibold bg-gray-50 hover:bg-gray-100 flex items-center justify-between">
+                        Exam Management
+                        <span id="examIcon">▼</span>
+                    </button>
+                    <div id="examContent" class="section-content">
+                        <div class="p-4 border-t space-y-6">
+                            <!-- Create Exam -->
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">➕ Create Exam</h3>
+                                <form id="createExamForm" onsubmit="createExam(event)" class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="number" name="subject_id" placeholder="Subject ID" class="p-2 border rounded" required>
+                                        <input type="text" name="exam_name" placeholder="Exam Name" class="p-2 border rounded" required>
+                                        <textarea name="exam_description" placeholder="Description" class="p-2 border rounded col-span-2" rows="3"></textarea>
+                                        <input type="text" name="exam_type" placeholder="Type" class="p-2 border rounded">
+                                        <input type="datetime-local" name="exam_date" placeholder="Exam Date" class="p-2 border rounded">
+                                        <select name="exam_is_active" class="p-2 border rounded">
+                                            <option value="">Is Active?</option>
+                                            <option value="1">Yes</option>
+                                            <option value="0">No</option>
+                                        </select>
+                                        <input type="text" name="announcement_document" placeholder="Document URL" class="p-2 border rounded">
+                                        <input type="text" name="created_by" placeholder="Created By" class="p-2 border rounded">
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                        💾 Create Exam
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Edit Exam -->
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">✏️ Edit Exam</h3>
+                                <div class="mb-4">
+                                    <input type="number" id="editExamId" placeholder="Enter Exam ID to edit" class="p-2 border rounded">
+                                </div>
+                                <form id="editExamForm" onsubmit="editExam(event)" class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="number" name="subject_id" placeholder="Subject ID" class="p-2 border rounded" required>
+                                        <input type="text" name="exam_name" placeholder="Exam Name" class="p-2 border rounded" required>
+                                        <textarea name="exam_description" placeholder="Description" class="p-2 border rounded col-span-2" rows="3"></textarea>
+                                        <input type="text" name="exam_type" placeholder="Type" class="p-2 border rounded">
+                                        <input type="datetime-local" name="exam_date" placeholder="Exam Date" class="p-2 border rounded">
+                                        <select name="exam_is_active" class="p-2 border rounded">
+                                            <option value="">Is Active?</option>
+                                            <option value="1">Yes</option>
+                                            <option value="0">No</option>
+                                        </select>
+                                        <input type="text" name="announcement_document" placeholder="Document URL" class="p-2 border rounded">
+                                        <input type="text" name="created_by" placeholder="Created By" class="p-2 border rounded">
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                        💾 Update Exam
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messaging -->
+                <div class="border rounded-lg">
+                    <button onclick="toggleSection('messaging')" class="w-full p-4 text-left font-semibold bg-gray-50 hover:bg-gray-100 flex items-center justify-between">
+                        Messaging
+                        <span id="messagingIcon">▼</span>
+                    </button>
+                    <div id="messagingContent" class="section-content">
+                        <div class="p-4 border-t space-y-6">
+                            <!-- Send Message -->
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">➕ Send Message</h3>
+                                <form id="sendMessageForm" onsubmit="sendMessage(event)" class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="text" name="from" placeholder="From" class="p-2 border rounded" required>
+                                        <input type="text" name="to" placeholder="To" class="p-2 border rounded" required>
+                                        <textarea name="msg" placeholder="Message" class="p-2 border rounded col-span-2" rows="3" required></textarea>
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                        💾 Send Message
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Mark as Seen -->
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">✏️ Mark Message as Seen</h3>
+                                <form id="markSeenForm" onsubmit="markSeen(event)" class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="text" name="from" placeholder="From" class="p-2 border rounded" required>
+                                        <input type="text" name="to" placeholder="To" class="p-2 border rounded" required>
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                        💾 Mark as Seen
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Registration -->
+                <div class="border rounded-lg">
+                    <button onclick="toggleSection('register')" class="w-full p-4 text-left font-semibold bg-gray-50 hover:bg-gray-100 flex items-center justify-between">
+                        User Registration
+                        <span id="registerIcon">▼</span>
+                    </button>
+                    <div id="registerContent" class="section-content">
+                        <div class="p-4 border-t">
+                            <h3 class="text-lg font-semibold mb-3">➕ Register New User</h3>
+                            <form id="registerForm" onsubmit="registerUser(event)" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <input type="text" name="name" placeholder="Name" class="p-2 border rounded" required>
+                                    <input type="email" name="email" placeholder="Email" class="p-2 border rounded" required>
+                                    <input type="password" name="password" placeholder="Password" class="p-2 border rounded" required>
+                                    <select name="role" class="p-2 border rounded" required>
+                                        <option value="">Select Role</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="teacher">Teacher</option>
+                                        <option value="student">Student</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                    💾 Register User
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://khayalstudio.com/siraj/api';
+        let authToken = '';
+
+        // Show/hide elements
+        function show(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function hide(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // Show message
+        function showMessage(text, isError = false) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = isError ? 
+                'mb-4 p-3 bg-red-100 text-red-700 rounded' : 
+                'mb-4 p-3 bg-green-100 text-green-700 rounded';
+            show('message');
+            setTimeout(() => hide('message'), 3000);
+        }
+
+        // Show/hide loading
+        function showLoading() {
+            show('loading');
+        }
+
+        function hideLoading() {
+            hide('loading');
+        }
+
+        // Toggle sections
+        function toggleSection(section) {
+            const content = document.getElementById(section + 'Content');
+            const icon = document.getElementById(section + 'Icon');
+            
+            if (content.classList.contains('open')) {
+                content.classList.remove('open');
+                icon.textContent = '▼';
+            } else {
+                content.classList.add('open');
+                icon.textContent = '▲';
+            }
+        }
+
+        // Login function
+        async function login() {
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@admin.admin',
+                        password: 'password'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.access_token) {
+                    authToken = data.access_token;
+                    hide('loginScreen');
+                    show('dashboard');
+                    showMessage('Login successful!');
+                } else {
+                    showLoginMessage('Login failed', true);
+                }
+            } catch (error) {
+                showLoginMessage('Login error: ' + error.message, true);
+            }
+
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Login';
+        }
+
+        // Show login message
+        function showLoginMessage(text, isError = false) {
+            const messageEl = document.getElementById('loginMessage');
+            messageEl.textContent = text;
+            messageEl.className = isError ? 
+                'p-2 bg-red-100 text-red-700 rounded text-sm' : 
+                'p-2 bg-green-100 text-green-700 rounded text-sm';
+            show('loginMessage');
+        }
+
+        // Logout function
+        function logout() {
+            authToken = '';
+            hide('dashboard');
+            show('loginScreen');
+            hide('loginMessage');
+        }
+
+        // Generic API call function
+        async function makeApiCall(endpoint, method, data) {
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                showMessage(result.message || 'Operation successful!');
+                return result;
+            } catch (error) {
+                showMessage('Error: ' + error.message, true);
+            }
+            hideLoading();
+        }
+
+        // Form data extraction helper
+        function getFormData(form) {
+            const formData = new FormData(form);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                if (value.trim() !== '') {
+                    data[key] = value;
+                }
+            }
+            return data;
+        }
+
+        // Teacher functions
+        async function createTeacher(event) {
+            event.preventDefault();
+            const data = getFormData(event.target);
+            await makeApiCall('/teacher/create', 'POST', data);
+            event.target.reset();
+        }
+
+        async function editTeacher(event) {
+            event.preventDefault();
+            const teacherId = document.getElementById('editTeacherId').value;
+            if (!teacherId) {
+                showMessage('Please enter Teacher ID', true);
+                return;
+            }
+            const data = getFormData(event.target);
+            await makeApiCall(`/teacher/edit/${teacherId}`, 'PUT', data);
+        }
+
+        // Student functions
+        async function createStudent(event) {
+            event.preventDefault();
+            const data = getFormData(event.target);
+            await makeApiCall('/student/create', 'POST', data);
+            event.target.reset();
+        }
+
+        async function editStudent(event) {
+            event.preventDefault();
+            const studentId = document.getElementById('editStudentId').value;
+            if (!studentId) {
+                showMessage('Please enter Student ID', true);
+                return;
+            }
+            const data = getFormData(event.target);
+            await makeApiCall(`/student/edit/${studentId}`, 'PUT', data);
+        }
+
+        // Stage functions
+        async function createStage(event) {
+            event.preventDefault();
+            const data = getFormData(event.target);
+            await makeApiCall('/stage/create', 'POST', data);
+            event.target.reset();
+        }
+
+        async function editStage(event) {
+            event.preventDefault();
+            const stageId = document.getElementById('editStageId').value;
+            if (!stageId) {
+                showMessage('Please enter Stage ID', true);
+                return;
+            }
+            const data = getFormData(event.target);
+            await makeApiCall(`/stage/edit/${stageId}`, 'PUT', data);
+        }
+
+        // Subject functions
+        async function createSubject(event) {
+            event.preventDefault();
+            const data = getFormData(event.target);
+            await makeApiCall('/subject/create', 'POST', data);
+            event.target.reset();
+        }
+
+        async function editSubject(event) {
+            event.preventDefault();
+            const subjectId = document.getElementById('editSubjectId').value;
+            if (!subjectId) {
+                showMessage('Please enter Subject ID', true);
+                return;
+            }
+            const data = getFormData(event.target);
+            await makeApiCall(`/subject/edit/${subjectId}`, 'PUT', data);
+        }
+
+        // Announcement functions
+        async function createAnnouncement(event) {
+            event.preventDefault();
+            const data = getFormData(event.target);
+            await makeApiCall('/announcement/create', 'POST', data);
+            event.target.reset();
+        }
+
+        async function editAnnouncement(event) {
+            event.preventDefault();
+            const announcementId = document.getElementById('editAnnouncementId').value;
+            if (!announcementId) {
+                showMessage('Please enter Announcement ID', true);
+                return;
+            }
+            const data = getFormData(event.target);
+            await makeApiCall(`/announcement/edit/${announcementId}`, 'PUT', data);
+        }
+
+        // Exam functions
+        async function createExam(event) {
+            event.preventDefault();
+            const data = getFormData(event.target);
+            await makeApiCall('/exam/create', 'POST', data);
+            event.target.reset();
+        }
+
+        async function editExam(event) {
+            event.preventDefault();
+            const examId = document.getElementById('editExamId').value;
+            if (!examId) {
+                showMessage('Please enter Exam ID', true);
+                return;
+            }
+            const data = getFormData(event.target);
+            await makeApiCall(`/exam/edit/${examId}`, 'PUT', data);
+        }
+
+        // Messaging functions
+        async function sendMessage(event) {
+            event.preventDefault();
+            const data = getFormData(event.target);
+            await makeApiCall('/send', 'POST', data);
+            event.target.reset();
+        }
+
+        async function markSeen(event) {
+            event.preventDefault();
+            const data = getFormData(event.target);
+            await makeApiCall('/see', 'POST', data);
+            event.target.reset();
+        }
+
+        // User registration
+        async function registerUser(event) {
+            event.preventDefault();
+            const data = getFormData(event.target);
+            await makeApiCall('/register', 'POST', data);
+            event.target.reset();
+        }
+    </script>
+</body>
+</html>

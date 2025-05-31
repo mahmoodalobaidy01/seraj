@@ -15,7 +15,12 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    // No need to fetch data here since UserController handles it
+    // Refresh profile data when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (userController.isAuthenticated) {
+        userController.refreshProfile();
+      }
+    });
   }
 
   @override
@@ -38,6 +43,13 @@ class _MainScreenState extends State<MainScreen> {
         elevation: 0,
         centerTitle: true,
         actions: [
+          // Refresh button
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              userController.refreshProfile();
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () {
@@ -58,191 +70,269 @@ class _MainScreenState extends State<MainScreen> {
         }
 
         return user == null
-            ? const Center(
-                child: Text(
-                  'المستخدم غير مسجل الدخول',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: Colors.white,
+                      size: 60,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'المستخدم غير مسجل الدخول',
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => Get.offAndToNamed('/login'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF87CEEB),
+                      ),
+                      child: const Text('تسجيل الدخول'),
+                    ),
+                  ],
                 ),
               )
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    // Profile Avatar
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2E7D7A),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
+            : RefreshIndicator(
+                color: const Color(0xFF87CEEB),
+                onRefresh: () async {
+                  await userController.refreshProfile();
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      // Profile Avatar
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2E7D7A),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: userController.teacherImageUrl != null
+                            ? ClipOval(
+                                child: Image.network(
+                                  userController.teacherImageUrl!,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                      size: 60,
+                                    );
+                                  },
+                                ),
+                              )
+                            : const Icon(
+                                Icons.person,
+                                color: Colors.white,
+                                size: 60,
+                              ),
+                      ),
+                      const SizedBox(height: 20),
+                      
+                      // Teacher Position (only for teachers/leaders)
+                      if (teacher?.teacherPosition != null) ...[
+                        Text(
+                          teacher!.teacherPosition,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                      ] else ...[
+                        Text(
+                          _getRoleDisplayName(user.role),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                      ],
+                      
+                      // Display Name (using the new displayName getter)
+                      Text(
+                        userController.displayName.isNotEmpty 
+                            ? userController.displayName 
+                            : 'المستخدم',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 40),
+                      
+                      // Grid of Options
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 15,
+                        mainAxisSpacing: 15,
+                        childAspectRatio: 0.9,
+                        children: [
+                          // إرسال تبليغ علمي
+                          _buildOptionCard(
+                            icon: Icons.send,
+                            title: 'إرسال تبليغ علمي',
+                            color: const Color(0xFF4DD0E1),
+                            onTap: () {
+                              // Navigate to scientific notification
+                            },
+                          ),
+                          // الاختبارات
+                          _buildOptionCard(
+                            icon: Icons.calculate,
+                            title: 'الاختبارات',
+                            color: const Color(0xFFFF6B6B),
+                            onTap: () {
+                              // Navigate to tests
+                            },
+                          ),
+                          // إرسال تبليغ إداري
+                          _buildOptionCard(
+                            icon: Icons.campaign,
+                            title: 'إرسال تبليغ إداري',
+                            color: const Color(0xFF4FC3F7),
+                            onTap: () {
+                              // Navigate to administrative notification
+                            },
+                          ),
+                          // الواجبات البيتية
+                          _buildOptionCard(
+                            icon: Icons.menu_book,
+                            title: 'الواجبات البيتية',
+                            color: const Color(0xFF90A4AE),
+                            onTap: () {
+                              // Navigate to homework
+                            },
+                          ),
+                          // المراسلة
+                          _buildOptionCard(
+                            icon: Icons.chat_bubble,
+                            title: 'المراسلة',
+                            color: const Color(0xFFE57373),
+                            badgeCount: 9,
+                            onTap: () {
+                              // Navigate to messages
+                            },
+                          ),
+                          // التبليغات الإدارية المستلمة
+                          _buildOptionCard(
+                            icon: Icons.notifications,
+                            title: 'التبليغات الإدارية المستلمة',
+                            color: const Color(0xFF4DD0E1),
+                            onTap: () {
+                              // Navigate to received notifications
+                            },
+                          ),
+                          // الدروس الالكترونية
+                          _buildOptionCard(
+                            icon: Icons.computer,
+                            title: 'الدروس الالكترونية',
+                            color: const Color(0xFF81C784),
+                            onTap: () {
+                              // Navigate to e-lessons
+                            },
+                          ),
+                          // الغيابات
+                          _buildOptionCard(
+                            icon: Icons.assignment,
+                            title: 'الغيابات',
+                            color: const Color(0xFFD4A574),
+                            onTap: () {
+                              // Navigate to absences
+                            },
+                          ),
+                          // التبليغات الإدارية المرسلة
+                          _buildOptionCard(
+                            icon: Icons.description,
+                            title: 'التبليغات الإدارية المرسلة',
+                            color: const Color(0xFFFFD54F),
+                            onTap: () {
+                              // Navigate to sent administrative notifications
+                            },
+                          ),
+                          // التبليغات العلمية المرسلة
+                          _buildOptionCard(
+                            icon: Icons.notifications_active,
+                            title: 'التبليغات العلمية المرسلة',
+                            color: const Color(0xFFFFB74D),
+                            onTap: () {
+                              // Navigate to sent scientific notifications
+                            },
                           ),
                         ],
                       ),
-                      child: userController.teacherImageUrl != null
-                          ? ClipOval(
-                              child: Image.network(
-                                userController.teacherImageUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                    size: 60,
-                                  );
-                                },
-                              ),
-                            )
-                          : const Icon(
-                              Icons.person,
-                              color: Colors.white,
-                              size: 60,
-                            ),
-                    ),
-                    const SizedBox(height: 20),
-                    // Teacher Position
-                    Text(
-                      teacher?.teacherPosition ?? 'الاستاذة',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    // Teacher Name
-                    Text(
-                      teacher?.teacherName ?? user?.name ?? 'المستخدم',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                    // Grid of Options
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 15,
-                      mainAxisSpacing: 15,
-                      childAspectRatio: 1.1,
-                      children: [
-                        _buildOptionCard(
-                          icon: Icons.send,
-                          title: 'إرسال تبليغ علمي',
-                          color: const Color(0xFF4CAF50),
-                          onTap: () {
-                            // Navigate to scientific notification
-                          },
+                      const SizedBox(height: 30),
+                      
+                      // Logout Button
+                      ElevatedButton.icon(
+                        onPressed: () => _showLogoutConfirmation(context),
+                        icon: const Icon(Icons.logout, color: Colors.white),
+                        label: const Text(
+                          'تسجيل الخروج',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
                         ),
-                        _buildOptionCard(
-                          icon: Icons.calculate,
-                          title: 'الاختبارات',
-                          color: const Color(0xFFFF9800),
-                          onTap: () {
-                            // Navigate to tests
-                          },
-                        ),
-                        _buildOptionCard(
-                          icon: Icons.campaign,
-                          title: 'إرسال تبليغ إداري',
-                          color: const Color(0xFF2196F3),
-                          onTap: () {
-                            // Navigate to administrative notification
-                          },
-                        ),
-                        _buildOptionCard(
-                          icon: Icons.assignment,
-                          title: 'الواجبات البيتية',
-                          color: const Color(0xFF607D8B),
-                          onTap: () {
-                            // Navigate to homework
-                          },
-                        ),
-                        _buildOptionCard(
-                          icon: Icons.chat,
-                          title: 'المراسلة',
-                          color: const Color(0xFFE91E63),
-                          badgeCount: 3,
-                          onTap: () {
-                            // Navigate to messages
-                          },
-                        ),
-                        _buildOptionCard(
-                          icon: Icons.notifications,
-                          title: 'التبليغات الإدارية المستلمة',
-                          color: const Color(0xFF00BCD4),
-                          onTap: () {
-                            // Navigate to received notifications
-                          },
-                        ),
-                        _buildOptionCard(
-                          icon: Icons.school,
-                          title: 'الدروس الالكترونية',
-                          color: const Color(0xFF9C27B0),
-                          onTap: () {
-                            // Navigate to e-lessons
-                          },
-                        ),
-                        _buildOptionCard(
-                          icon: Icons.event_note,
-                          title: 'الغيابات',
-                          color: const Color(0xFF795548),
-                          onTap: () {
-                            // Navigate to absences
-                          },
-                        ),
-                        _buildOptionCard(
-                          icon: Icons.description,
-                          title: 'التبليغات الإدارية المرسلة',
-                          color: const Color(0xFFFFEB3B),
-                          iconColor: Colors.black87,
-                          onTap: () {
-                            // Navigate to sent administrative notifications
-                          },
-                        ),
-                        _buildOptionCard(
-                          icon: Icons.notifications_active,
-                          title: 'التبليغات العلمية المرسلة',
-                          color: const Color(0xFFFF5722),
-                          onTap: () {
-                            // Navigate to sent scientific notifications
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    // Logout Button
-                    ElevatedButton.icon(
-                      onPressed: () => _showLogoutConfirmation(context),
-                      icon: const Icon(Icons.logout, color: Colors.white),
-                      label: const Text(
-                        'تسجيل الخروج',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
       }),
     );
+  }
+
+  // Get role display name
+  String _getRoleDisplayName(String role) {
+    switch (role) {
+      case 'leader':
+        return 'المرشد';
+      case 'teacher':
+        return 'الاستاذة';
+      case 'student':
+        return 'طالب';
+      default:
+        return 'الاستاذة';
+    }
   }
 
   Widget _buildOptionCard({
@@ -258,71 +348,78 @@ class _MainScreenState extends State<MainScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: iconColor,
+                      size: 28,
+                    ),
                   ),
-                  child: Icon(
-                    icon,
-                    color: iconColor,
-                    size: 32,
-                  ),
-                ),
-                if (badgeCount != null)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        badgeCount.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                  if (badgeCount != null)
+                    Positioned(
+                      right: -8,
+                      top: -8,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 24,
+                          minHeight: 24,
+                        ),
+                        child: Text(
+                          badgeCount > 99 ? '99+' : badgeCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
+                ],
+              ),
+              const SizedBox(height: 15),
+              Text(
                 title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: Colors.grey.shade700,
-                  height: 1.2,
+                  height: 1.3,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
