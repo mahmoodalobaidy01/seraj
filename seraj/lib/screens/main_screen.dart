@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/user_controller.dart';
+import 'send_scientific_notification_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -60,7 +61,6 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: Obx(() {
         final user = userController.user.value;
-        final teacher = userController.teacher.value;
         final isLoading = userController.isLoading.value;
 
         if (isLoading) {
@@ -122,61 +122,33 @@ class _MainScreenState extends State<MainScreen> {
                             ),
                           ],
                         ),
-                        child: userController.teacherImageUrl != null
-                            ? ClipOval(
-                                child: Image.network(
-                                  userController.teacherImageUrl!,
-                                  fit: BoxFit.cover,
-                                  loadingBuilder: (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return const Center(
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    );
-                                  },
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(
-                                      Icons.person,
-                                      color: Colors.white,
-                                      size: 60,
-                                    );
-                                  },
-                                ),
-                              )
-                            : const Icon(
-                                Icons.person,
-                                color: Colors.white,
-                                size: 60,
-                              ),
+                        child: const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 60,
+                        ),
                       ),
                       const SizedBox(height: 20),
                       
-                      // Teacher Position (only for teachers/leaders)
-                      if (teacher?.teacherPosition != null) ...[
-                        Text(
-                          teacher!.teacherPosition,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
+                      // Role Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _getRoleColor(user.role),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        const SizedBox(height: 5),
-                      ] else ...[
-                        Text(
+                        child: Text(
                           _getRoleDisplayName(user.role),
                           style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
                             color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 5),
-                      ],
+                      ),
+                      const SizedBox(height: 10),
                       
-                      // Display Name (using the new displayName getter)
+                      // Display Name
                       Text(
                         userController.displayName.isNotEmpty 
                             ? userController.displayName 
@@ -205,7 +177,7 @@ class _MainScreenState extends State<MainScreen> {
                             title: 'إرسال تبليغ علمي',
                             color: const Color(0xFF4DD0E1),
                             onTap: () {
-                              // Navigate to scientific notification
+                              Get.to(() =>  SendScientificNotificationScreen(user: userController ));
                             },
                           ),
                           // الاختبارات
@@ -294,6 +266,66 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                       const SizedBox(height: 30),
                       
+                      // User Info Card
+                      if (user.email.isNotEmpty)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          margin: const EdgeInsets.only(bottom: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'معلومات المستخدم',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2E7D7A),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  const Icon(Icons.email, 
+                                    size: 16, 
+                                    color: Colors.grey),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      user.email,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.person, 
+                                    size: 16, 
+                                    color: Colors.grey),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'ID: ${user.id}',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      
                       // Logout Button
                       ElevatedButton.icon(
                         onPressed: () => _showLogoutConfirmation(context),
@@ -321,17 +353,31 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  // Get role color
+  Color _getRoleColor(String role) {
+    switch (role) {
+      case 'leader':
+        return const Color(0xFFFF5722);
+      case 'teacher':
+        return const Color(0xFF4CAF50);
+      case 'student':
+        return const Color(0xFF2196F3);
+      default:
+        return const Color(0xFF607D8B);
+    }
+  }
+
   // Get role display name
   String _getRoleDisplayName(String role) {
     switch (role) {
       case 'leader':
-        return 'المرشد';
+        return 'مدير المدرسة';
       case 'teacher':
-        return 'الاستاذة';
+        return 'معلم';
       case 'student':
         return 'طالب';
       default:
-        return 'الاستاذة';
+        return 'مستخدم';
     }
   }
 

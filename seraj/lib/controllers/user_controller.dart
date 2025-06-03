@@ -16,6 +16,7 @@ class User {
   final String? emailVerifiedAt;
   final String? createdAt;
   final String? updatedAt;
+  final int? variableId; // 👈 New field
 
   User({
     required this.id,
@@ -27,16 +28,18 @@ class User {
     this.emailVerifiedAt,
     this.createdAt,
     this.updatedAt,
+    this.variableId, // 👈 Include in constructor
   });
 
   factory User.fromQRResponse(Map<String, dynamic> json) {
     return User(
       id: json['id'] ?? 0,
-      name: '', // Will be updated from profile data
-      email: '', // Will be updated from profile data
+      name: '',
+      email: '',
       role: json['role'] ?? '',
       accessToken: json['access_token'],
       tokenType: json['token_type'] ?? 'Bearer',
+      variableId: json['variable_id']?? null, // 👈 Add here
     );
   }
 
@@ -51,10 +54,11 @@ class User {
       emailVerifiedAt: json['email_verified_at'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
+      variableId: json['variable_id']?? null, // 👈 Add here
     );
   }
 
-  factory User.fromProfileResponse(Map<String, dynamic> json, String? accessToken, String? tokenType) {
+  factory User.fromProfileResponse(Map<String, dynamic> json, String? accessToken, String? tokenType , int? variable_id) {
     return User(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
@@ -65,6 +69,7 @@ class User {
       emailVerifiedAt: json['email_verified_at'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
+      variableId:variable_id??null, // 👈 Add here
     );
   }
 
@@ -79,6 +84,7 @@ class User {
       'email_verified_at': emailVerifiedAt,
       'created_at': createdAt,
       'updated_at': updatedAt,
+      'variable_id': variableId, // 👈 Add here
     };
   }
 
@@ -92,6 +98,7 @@ class User {
     String? emailVerifiedAt,
     String? createdAt,
     String? updatedAt,
+    int? variableId, // 👈 Add here
   }) {
     return User(
       id: id ?? this.id,
@@ -103,92 +110,17 @@ class User {
       emailVerifiedAt: emailVerifiedAt ?? this.emailVerifiedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      variableId: variableId ?? this.variableId, // 👈 Add here
     );
   }
 }
 
-class Teacher {
-  final int id;
-  final int userId;
-  final String teacherName;
-  final String teacherBirth;
-  final int teacherGender;
-  final String teacherPosition;
-  final String? teacherImage;
-  final String teacherAddress;
-  final String teacherPhone;
-  final int teacherStatus;
-  final int teacherLeader;
-  final String teacherQr;
-  final int createdBy;
-  final String createdAt;
-  final String updatedAt;
-
-  Teacher({
-    required this.id,
-    required this.userId,
-    required this.teacherName,
-    required this.teacherBirth,
-    required this.teacherGender,
-    required this.teacherPosition,
-    this.teacherImage,
-    required this.teacherAddress,
-    required this.teacherPhone,
-    required this.teacherStatus,
-    required this.teacherLeader,
-    required this.teacherQr,
-    required this.createdBy,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory Teacher.fromJson(Map<String, dynamic> json) {
-    return Teacher(
-      id: json['id'] ?? 0,
-      userId: json['user_id'] ?? 0,
-      teacherName: json['teacher_name'] ?? '',
-      teacherBirth: json['teacher_birth'] ?? '',
-      teacherGender: json['teacher_gender'] ?? 0,
-      teacherPosition: json['teacher_position'] ?? '',
-      teacherImage: json['teacher_image'],
-      teacherAddress: json['teacher_address'] ?? '',
-      teacherPhone: json['teacher_phone'] ?? '',
-      teacherStatus: json['teacher_status'] ?? 0,
-      teacherLeader: json['teacher_leader'] ?? 0,
-      teacherQr: json['teacher_qr'] ?? '',
-      createdBy: json['created_by'] ?? 0,
-      createdAt: json['created_at'] ?? '',
-      updatedAt: json['updated_at'] ?? '',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'user_id': userId,
-      'teacher_name': teacherName,
-      'teacher_birth': teacherBirth,
-      'teacher_gender': teacherGender,
-      'teacher_position': teacherPosition,
-      'teacher_image': teacherImage,
-      'teacher_address': teacherAddress,
-      'teacher_phone': teacherPhone,
-      'teacher_status': teacherStatus,
-      'teacher_leader': teacherLeader,
-      'teacher_qr': teacherQr,
-      'created_by': createdBy,
-      'created_at': createdAt,
-      'updated_at': updatedAt,
-    };
-  }
-}
 
 class UserController extends GetxController {
   static const String baseUrl = 'https://khayalstudio.com/siraj/api';
   
   // Observable variables
   var user = Rxn<User>();
-  var teacher = Rxn<Teacher>();
   var isLoggedIn = false.obs;
   var isLoading = false.obs;
 
@@ -226,20 +158,19 @@ class UserController extends GetxController {
     }
   }
 
-  // Fetch profile data from new /profile endpoint
+  // Fetch profile data from /profile endpoint using GET method with token in header
   Future<void> fetchProfileData() async {
     try {
       if (user.value?.accessToken == null) return;
       
       final response = await http.get(
-  Uri.parse('$baseUrl/profile'),
-  headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${user.value!.accessToken}',
-  },
-);
-
+        Uri.parse('$baseUrl/profile'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${user.value!.accessToken}',
+        },
+      );
 
       print('Profile response: ${response.body}');
 
@@ -247,25 +178,25 @@ class UserController extends GetxController {
         final data = json.decode(response.body);
         
         // Check if user array exists and has data
-        if (data['user'] != null && data['user'] is List && data['user'].isNotEmpty) {
-          final userData = data['user'][0]; // Get first user from array
+        if (data['user'] != null && data['user'].isNotEmpty) {
+          final userData = data['user']; // Get first user from array
+          final teacher_id = data['teacher_id'];
+          print(teacher_id);
           
           // Update user with complete profile data while preserving token info
           user.value = User.fromProfileResponse(
             userData,
             user.value!.accessToken,
             user.value!.tokenType,
+            teacher_id
           );
           
-          print('Profile data loaded for user: ${user.value?.name} (Role: ${user.value?.role})');
-          
-          // If user is a teacher or leader, fetch teacher-specific data if needed
-          if (user.value?.role == 'leader' || user.value?.role == 'teacher') {
-            await fetchTeacherData(user.value!.id);
-          }
+          print('Profile data loaded for user: ${user.value?.name} (Role: ${user.value?.role}) ID: ${user.value?.variableId}');
           
         } else {
           print('No user data found in profile response');
+          print(data['teacher_id']);
+
           Get.snackbar(
             'خطأ',
             'لم يتم العثور على بيانات المستخدم',
@@ -311,36 +242,6 @@ class UserController extends GetxController {
     }
   }
 
-  // Fetch teacher data (keep existing method for teacher-specific data)
-  Future<void> fetchTeacherData(int teacherId) async {
-    try {
-      if (user.value?.accessToken == null) return;
-      
-      final response = await http.get(
-        Uri.parse('$baseUrl/teacher/$teacherId'),
-        headers: {
-          'Authorization': '${user.value!.tokenType} ${user.value!.accessToken}',
-          'Accept': 'application/json',
-        },
-      );
-      print('Teacher response: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['teacher'] != null) {
-          teacher.value = Teacher.fromJson(data['teacher']);
-          print('Teacher data loaded: ${teacher.value?.teacherName}');
-        }
-      } else {
-        print('Failed to fetch teacher data: ${response.statusCode}');
-        // Don't show error for teacher data as it might not exist for all users
-      }
-    } catch (e) {
-      print('Error fetching teacher data: $e');
-      // Don't show error snackbar for teacher data
-    }
-  }
-
   // Refresh profile data
   Future<void> refreshProfile() async {
     if (isAuthenticated) {
@@ -357,9 +258,6 @@ class UserController extends GetxController {
       if (user.value != null) {
         await prefs.setString('user', json.encode(user.value!.toJson()));
       }
-      if (teacher.value != null) {
-        await prefs.setString('teacher', json.encode(teacher.value!.toJson()));
-      }
       await prefs.setBool('isLoggedIn', isLoggedIn.value);
     } catch (e) {
       print('Error saving user to storage: $e');
@@ -371,20 +269,14 @@ class UserController extends GetxController {
     try {
       final prefs = await SharedPreferences.getInstance();
       final userJson = prefs.getString('user');
-      final teacherJson = prefs.getString('teacher');
       final savedLoginStatus = prefs.getBool('isLoggedIn') ?? false;
 
       if (userJson != null && savedLoginStatus) {
         final userData = json.decode(userJson);
         user.value = User.fromJson(userData);
         
-        if (teacherJson != null) {
-          final teacherData = json.decode(teacherJson);
-          teacher.value = Teacher.fromJson(teacherData);
-        }
-        
         isLoggedIn.value = true;
-        print('User loaded from storage: ${user.value?.name} (${user.value?.role})');
+        print('User loaded from storage: ${user.value?.name} (${user.value?.role}) ID: ${user.value?.variableId}');
       }
     } catch (e) {
       print('Error loading user from storage: $e');
@@ -396,11 +288,9 @@ class UserController extends GetxController {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('user');
-      await prefs.remove('teacher');
       await prefs.setBool('isLoggedIn', false);
       
       user.value = null;
-      teacher.value = null;
       isLoggedIn.value = false;
     } catch (e) {
       print('Error clearing user data: $e');
@@ -415,7 +305,7 @@ class UserController extends GetxController {
         await http.post(
           Uri.parse('$baseUrl/logout'),
           headers: {
-            'Authorization': '${user.value!.tokenType} ${user.value!.accessToken}',
+            'Authorization': 'Bearer ${user.value!.accessToken}',
             'Accept': 'application/json',
           },
         );
@@ -428,21 +318,11 @@ class UserController extends GetxController {
     }
   }
 
-  // Get authorization headers for body-based auth
-  Map<String, dynamic> get authBody {
-    if (user.value?.accessToken != null) {
-      return {
-        'access_token': user.value!.accessToken,
-      };
-    }
-    return {};
-  }
-
-  // Get authorization headers for header-based auth (for legacy endpoints)
+  // Get authorization headers for header-based auth
   Map<String, String> get authHeaders {
     if (user.value?.accessToken != null) {
       return {
-        'Authorization': '${user.value!.tokenType} ${user.value!.accessToken}',
+        'Authorization': 'Bearer ${user.value!.accessToken}',
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       };
@@ -468,50 +348,21 @@ class UserController extends GetxController {
   // Check if user is student
   bool get isStudent => userRole == 'student';
 
-  // Get display name (prefer teacher name if available, otherwise user name)
-  String get displayName {
-    if (teacher.value?.teacherName.isNotEmpty == true) {
-      return teacher.value!.teacherName;
-    }
-    return user.value?.name ?? '';
-  }
+  // Get display name
+  String get displayName => user.value?.name ?? '';
 
-  // Get teacher image URL
-  String? get teacherImageUrl {
-    if (teacher.value?.teacherImage != null) {
-      return 'https://khayalstudio.com/siraj/public/${teacher.value!.teacherImage}';
-    }
-    return null;
-  }
+  // Get user ID
+  int get userId => user.value?.id ?? 0;
 
-  // Generic API call method with body-based auth
+  // Generic API call method with header-based auth
   Future<http.Response?> apiCall({
     required String endpoint,
     required String method,
     Map<String, dynamic>? body,
-    bool useHeaderAuth = false, // Flag to use header auth for legacy endpoints
   }) async {
     try {
       final uri = Uri.parse('$baseUrl$endpoint');
-      Map<String, String> headers = {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      };
-      
-      Map<String, dynamic>? requestBody = body ?? {};
-
-      // Add authentication
-      if (useHeaderAuth) {
-        // Use header-based auth for legacy endpoints
-        if (user.value?.accessToken != null) {
-          headers['Authorization'] = '${user.value!.tokenType} ${user.value!.accessToken}';
-        }
-      } else {
-        // Use body-based auth for new endpoints
-        if (user.value?.accessToken != null) {
-          requestBody.addAll(authBody);
-        }
-      }
+      Map<String, String> headers = authHeaders;
 
       http.Response response;
       
@@ -523,14 +374,14 @@ class UserController extends GetxController {
           response = await http.post(
             uri,
             headers: headers,
-            body: json.encode(requestBody),
+            body: body != null ? json.encode(body) : null,
           );
           break;
         case 'PUT':
           response = await http.put(
             uri,
             headers: headers,
-            body: json.encode(requestBody),
+            body: body != null ? json.encode(body) : null,
           );
           break;
         case 'DELETE':
