@@ -359,7 +359,7 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
       request.fields['announcement_title'] = _titleController.text.trim();
       request.fields['announcement_description'] = _descriptionController.text.trim();
       request.fields['announcement_type'] = 'scientific';
-      request.fields['created_by'] = user.id.toString();
+      request.fields['created_by'] = user.variableId?.toString() ?? '${user.variableId}';
 
       print('Submitting with fields: ${request.fields}');
 
@@ -407,8 +407,7 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
         
         // Go back to previous screen
         if (mounted) {
-          Get.off(MainScreen());
-        }
+Navigator.of(context).pop();        }
       } else if (response.statusCode == 401) {
         print('Unauthorized during submission - logging out user');
         if (mounted) {

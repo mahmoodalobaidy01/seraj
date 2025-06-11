@@ -178,6 +178,7 @@ class _MainScreenState extends State<MainScreen> {
                             color: const Color(0xFF4DD0E1),
                             onTap: () {
                               Get.to(() =>  SendScientificNotificationScreen(user: userController ));
+                              
                             },
                           ),
                           // الاختبارات
