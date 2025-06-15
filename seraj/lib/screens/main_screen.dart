@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/user_controller.dart';
+import 'package:seraj/screens/exam_screen.dart';
+import 'package:seraj/screens/homework_screen.dart';
+import '../controllers/auth_controller.dart';
 import 'send_scientific_notification_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -11,15 +13,15 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  final userController = Get.find<UserController>();
+  final authController = Get.find<AuthController>();
 
   @override
   void initState() {
     super.initState();
     // Refresh profile data when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (userController.isAuthenticated) {
-        userController.refreshProfile();
+      if (authController.isAuthenticated) {
+        authController.refreshProfile();
       }
     });
   }
@@ -48,7 +50,7 @@ class _MainScreenState extends State<MainScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              userController.refreshProfile();
+              authController.refreshProfile();
             },
           ),
           IconButton(
@@ -60,8 +62,8 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
       body: Obx(() {
-        final user = userController.user.value;
-        final isLoading = userController.isLoading.value;
+        final user = authController.user.value;
+        final isLoading = authController.isLoading.value;
 
         if (isLoading) {
           return const Center(
@@ -99,7 +101,7 @@ class _MainScreenState extends State<MainScreen> {
             : RefreshIndicator(
                 color: const Color(0xFF87CEEB),
                 onRefresh: () async {
-                  await userController.refreshProfile();
+                  await authController.refreshProfile();
                 },
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -150,8 +152,8 @@ class _MainScreenState extends State<MainScreen> {
                       
                       // Display Name
                       Text(
-                        userController.displayName.isNotEmpty 
-                            ? userController.displayName 
+                        authController.displayName.isNotEmpty 
+                            ? authController.displayName 
                             : 'المستخدم',
                         style: const TextStyle(
                           fontSize: 24,
@@ -177,8 +179,7 @@ class _MainScreenState extends State<MainScreen> {
                             title: 'إرسال تبليغ علمي',
                             color: const Color(0xFF4DD0E1),
                             onTap: () {
-                              Get.to(() =>  SendScientificNotificationScreen(user: userController ));
-                              
+                              Get.to(() => SendScientificNotificationScreen(user: authController));
                             },
                           ),
                           // الاختبارات
@@ -187,7 +188,18 @@ class _MainScreenState extends State<MainScreen> {
                             title: 'الاختبارات',
                             color: const Color(0xFFFF6B6B),
                             onTap: () {
-                              // Navigate to tests
+                              // Navigate to homework screen with teacher ID
+                              if (authController.teacherId != null) {
+                                Get.to(() => ExamScreen(teacherId: authController.teacherId!));
+                              } else {
+                                Get.snackbar(
+                                  'خطأ',
+                                  'معرف المعلم غير متوفر',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                );
+                              }
                             },
                           ),
                           // إرسال تبليغ إداري
@@ -205,7 +217,18 @@ class _MainScreenState extends State<MainScreen> {
                             title: 'الواجبات البيتية',
                             color: const Color(0xFF90A4AE),
                             onTap: () {
-                              // Navigate to homework
+                              // Navigate to homework screen with teacher ID
+                              if (authController.teacherId != null) {
+                                Get.to(() => HomeworkScreen(teacherId: authController.teacherId!));
+                              } else {
+                                Get.snackbar(
+                                  'خطأ',
+                                  'معرف المعلم غير متوفر',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                );
+                              }
                             },
                           ),
                           // المراسلة
@@ -489,7 +512,7 @@ class _MainScreenState extends State<MainScreen> {
             ),
             onPressed: () {
               Navigator.pop(context);
-              userController.logout();
+              authController.logout();
             },
             child: const Text(
               'تسجيل الخروج',
