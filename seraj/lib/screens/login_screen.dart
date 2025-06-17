@@ -54,7 +54,7 @@ class LoginScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         const Text(
-                          'Scan QR code to login',
+                          'اقرأ الرمز لتسجيل الدخول',
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.white70,
@@ -74,7 +74,7 @@ class LoginScreen extends StatelessWidget {
                           ),
                           icon: const Icon(Icons.camera_alt),
                           label: const Text(
-                            'Scan QR Code Now',
+                            'قم بقراءة الرمز الان',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           onPressed: () =>

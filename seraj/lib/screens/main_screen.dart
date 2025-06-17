@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:seraj/controllers/auth_controller.dart';
 import 'package:seraj/screens/exam_screen.dart';
 import 'package:seraj/screens/homework_screen.dart';
-import '../controllers/auth_controller.dart';
 import 'send_scientific_notification_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -53,14 +53,9 @@ class _MainScreenState extends State<MainScreen> {
               authController.refreshProfile();
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              // Add menu functionality
-            },
-          ),
         ],
       ),
+      drawer: _buildDrawer(),
       body: Obx(() {
         final user = authController.user.value;
         final isLoading = authController.isLoading.value;
@@ -131,10 +126,11 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Role Badge
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: _getRoleColor(user.role),
                           borderRadius: BorderRadius.circular(20),
@@ -149,11 +145,11 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      
+
                       // Display Name
                       Text(
-                        authController.displayName.isNotEmpty 
-                            ? authController.displayName 
+                        authController.displayName.isNotEmpty
+                            ? authController.displayName
                             : 'المستخدم',
                         style: const TextStyle(
                           fontSize: 24,
@@ -163,7 +159,7 @@ class _MainScreenState extends State<MainScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 40),
-                      
+
                       // Grid of Options
                       GridView.count(
                         shrinkWrap: true,
@@ -179,7 +175,8 @@ class _MainScreenState extends State<MainScreen> {
                             title: 'إرسال تبليغ علمي',
                             color: const Color(0xFF4DD0E1),
                             onTap: () {
-                              Get.to(() => SendScientificNotificationScreen(user: authController));
+                              Get.to(() => SendScientificNotificationScreen(
+                                  user: authController));
                             },
                           ),
                           // الاختبارات
@@ -190,7 +187,8 @@ class _MainScreenState extends State<MainScreen> {
                             onTap: () {
                               // Navigate to homework screen with teacher ID
                               if (authController.teacherId != null) {
-                                Get.to(() => ExamScreen(teacherId: authController.teacherId!));
+                                Get.to(() => ExamScreen(
+                                    teacherId: authController.teacherId!));
                               } else {
                                 Get.snackbar(
                                   'خطأ',
@@ -219,7 +217,8 @@ class _MainScreenState extends State<MainScreen> {
                             onTap: () {
                               // Navigate to homework screen with teacher ID
                               if (authController.teacherId != null) {
-                                Get.to(() => HomeworkScreen(teacherId: authController.teacherId!));
+                                Get.to(() => HomeworkScreen(
+                                    teacherId: authController.teacherId!));
                               } else {
                                 Get.snackbar(
                                   'خطأ',
@@ -289,67 +288,65 @@ class _MainScreenState extends State<MainScreen> {
                         ],
                       ),
                       const SizedBox(height: 30),
-                      
+
                       // User Info Card
-                      if (user.email.isNotEmpty)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          margin: const EdgeInsets.only(bottom: 20),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'معلومات المستخدم',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF2E7D7A),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(Icons.email, 
-                                    size: 16, 
-                                    color: Colors.grey),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      user.email,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.person, 
-                                    size: 16, 
-                                    color: Colors.grey),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'ID: ${user.id}',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      
+                      // if (user.email.isNotEmpty)
+                      //   Container(
+                      //     width: double.infinity,
+                      //     padding: const EdgeInsets.all(16),
+                      //     margin: const EdgeInsets.only(bottom: 20),
+                      //     decoration: BoxDecoration(
+                      //       color: Colors.white.withOpacity(0.9),
+                      //       borderRadius: BorderRadius.circular(12),
+                      //     ),
+                      //     child: Column(
+                      //       crossAxisAlignment: CrossAxisAlignment.start,
+                      //       children: [
+                      //         const Text(
+                      //           'معلومات المستخدم',
+                      //           style: TextStyle(
+                      //             fontSize: 16,
+                      //             fontWeight: FontWeight.bold,
+                      //             color: Color(0xFF2E7D7A),
+                      //           ),
+                      //         ),
+                      //         const SizedBox(height: 8),
+                      //         Row(
+                      //           children: [
+                      //             const Icon(Icons.email,
+                      //                 size: 16, color: Colors.grey),
+                      //             const SizedBox(width: 8),
+                      //             Expanded(
+                      //               child: Text(
+                      //                 user.email,
+                      //                 style: const TextStyle(
+                      //                   fontSize: 14,
+                      //                   color: Colors.grey,
+                      //                 ),
+                      //                 overflow: TextOverflow.ellipsis,
+                      //               ),
+                      //             ),
+                      //           ],
+                      //         ),
+                      //         const SizedBox(height: 4),
+                      //         Row(
+                      //           children: [
+                      //             const Icon(Icons.person,
+                      //                 size: 16, color: Colors.grey),
+                      //             const SizedBox(width: 8),
+                      //             Text(
+                      //               'ID: ${user.id}',
+                      //               style: const TextStyle(
+                      //                 fontSize: 14,
+                      //                 color: Colors.grey,
+                      //               ),
+                      //             ),
+                      //           ],
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   ),
+
                       // Logout Button
                       ElevatedButton.icon(
                         onPressed: () => _showLogoutConfirmation(context),
@@ -377,6 +374,322 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  Widget _buildDrawer() {
+    return Drawer(
+      child: Column(
+        children: [
+          // Drawer Header
+          Obx(() {
+            final user = authController.user.value;
+            return Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(
+                  top: 50, bottom: 20, left: 16, right: 16),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF87CEEB), Color(0xFF5DADE2)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              child: Column(
+                children: [
+                  // Profile Avatar
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.person,
+                      size: 50,
+                      color: Color(0xFF87CEEB),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  // User Name
+                  Text(
+                    user?.name ?? 'اسم المستخدم',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 5),
+                  // Role Badge
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Text(
+                      _getRoleDisplayName(user?.role ?? ''),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+
+          // Menu Items
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildDrawerItem(
+                  icon: Icons.info_outline,
+                  title: 'معلومات الاستاذ',
+                  iconColor: Colors.grey,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to teacher info
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.quiz,
+                  title: 'الاختبارات',
+                  iconColor: Colors.orange,
+                  onTap: () {
+                    Navigator.pop(context);
+                    if (authController.teacherId != null) {
+                      Get.to(() =>
+                          ExamScreen(teacherId: authController.teacherId!));
+                    }
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.send,
+                  title: 'إرسال تبليغ علمي',
+                  iconColor: Colors.green,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.to(() =>
+                        SendScientificNotificationScreen(user: authController));
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.menu_book,
+                  title: 'الواجبات البيتية',
+                  iconColor: Colors.blue,
+                  onTap: () {
+                    Navigator.pop(context);
+                    if (authController.teacherId != null) {
+                      Get.to(() =>
+                          HomeworkScreen(teacherId: authController.teacherId!));
+                    }
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.campaign,
+                  title: 'إرسال تبليغ إداري',
+                  iconColor: Colors.blue,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to administrative notification
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.notifications,
+                  title: 'التبليغات الإدارية المستلمة',
+                  iconColor: Colors.cyan,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to received notifications
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.chat_bubble,
+                  title: 'المراسلة',
+                  iconColor: Colors.red,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to messages
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.public,
+                  title: 'الأخبار',
+                  iconColor: Colors.teal,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to news
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.library_books,
+                  title: 'المكتبة',
+                  iconColor: Colors.brown,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to library
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.school,
+                  title: 'الامتحانات و الدرجات',
+                  iconColor: Colors.orange,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to exams and grades
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.group,
+                  title: 'طلابي',
+                  iconColor: Colors.purple,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to my students
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.event_available,
+                  title: 'الغيابات',
+                  iconColor: Colors.grey,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to absences
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.calendar_month,
+                  title: 'الجدول الشهري',
+                  iconColor: Colors.red,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to monthly schedule
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.computer,
+                  title: 'الدروس الالكترونية',
+                  iconColor: Colors.blue,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to e-lessons
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.calendar_view_week,
+                  title: 'الجدول الأسبوعي',
+                  iconColor: Colors.red,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to weekly schedule
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.notifications_active,
+                  title: 'التبليغات العلمية المرسلة',
+                  iconColor: Colors.orange,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to sent scientific notifications
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.description,
+                  title: 'التبليغات الإدارية المرسلة',
+                  iconColor: Colors.yellow.shade700,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to sent administrative notifications
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.support,
+                  title: 'الدعم الفني',
+                  iconColor: Colors.red,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to technical support
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.edit_note,
+                  title: 'حكمة اليوم',
+                  iconColor: Colors.green,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to daily wisdom
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.settings,
+                  title: 'الإعدادات',
+                  iconColor: Colors.blue,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to settings
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.exit_to_app,
+                  title: 'تسجيل الخروج',
+                  iconColor: Colors.orange,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showLogoutConfirmation(context);
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.archive,
+                  title: 'أرشيف السنوات',
+                  iconColor: Colors.blue,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to years archive
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.info,
+                  title: 'عن التطبيق',
+                  iconColor: Colors.orange,
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Show about dialog
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    required Color iconColor,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: iconColor,
+        size: 24,
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: Colors.black87,
+        ),
+      ),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      dense: true,
+    );
+  }
+
   // Get role color
   Color _getRoleColor(String role) {
     switch (role) {
@@ -395,7 +708,7 @@ class _MainScreenState extends State<MainScreen> {
   String _getRoleDisplayName(String role) {
     switch (role) {
       case 'leader':
-        return 'مدير المدرسة';
+        return 'مشرف الصف';
       case 'teacher':
         return 'معلم';
       case 'student':

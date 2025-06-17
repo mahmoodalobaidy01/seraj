@@ -24,7 +24,8 @@ class Stage {
 
   factory Stage.fromJson(Map<String, dynamic> json) {
     var subjectsList = json['subjects'] as List? ?? [];
-    List<Subject> subjects = subjectsList.map((i) => Subject.fromJson(i)).toList();
+    List<Subject> subjects =
+        subjectsList.map((i) => Subject.fromJson(i)).toList();
 
     return Stage(
       id: json['id'] ?? 0,
@@ -62,33 +63,36 @@ class Subject {
 }
 
 class SendScientificNotificationScreen extends StatefulWidget {
-  final user ; 
-  const SendScientificNotificationScreen({Key? key,required this.user}) : super(key: key);
+  final user;
+  const SendScientificNotificationScreen({Key? key, required this.user})
+      : super(key: key);
 
   @override
-  State<SendScientificNotificationScreen> createState() => _SendScientificNotificationScreenState();
+  State<SendScientificNotificationScreen> createState() =>
+      _SendScientificNotificationScreenState();
 }
 
-class _SendScientificNotificationScreenState extends State<SendScientificNotificationScreen> {
+class _SendScientificNotificationScreenState
+    extends State<SendScientificNotificationScreen> {
   // late final widget.user widget.user;
-  
+
   final _formKey = GlobalKey<FormState>();
-  
+
   // Form controllers
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
-  
+
   // Dropdown values
   Stage? _selectedStage;
   Subject? _selectedSubject;
-  
+
   // Data lists
   List<Stage> _stages = [];
-  
+
   // File selection
   File? _selectedFile;
   String? _selectedFileName;
-  
+
   // Loading states
   bool _isLoadingStages = false;
   bool _isSubmitting = false;
@@ -100,7 +104,7 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
     // Initialize controllers
     _titleController = TextEditingController();
     _descriptionController = TextEditingController();
-    
+
     // Get user controller - try to find existing one first, then create if needed
     // try {
     //   widget.user = Get.find<widget.user>();
@@ -109,16 +113,17 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
     //   print('widget.user not found, creating new one: $e');
     //   widget.user = Get.put(widget.user());
     // }
-    
+
     // Check if user is authenticated before proceeding
     if (!widget.user.isAuthenticated) {
-      print('User not authenticated, going back ${widget.user.isAuthenticated}');
+      print(
+          'User not authenticated, going back ${widget.user.isAuthenticated}');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Get.back();
       });
       return;
     }
-    
+
     // Fetch stages after a brief delay to ensure the widget is fully built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && !_disposed) {
@@ -143,7 +148,7 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
 
   Future<void> _fetchStages() async {
     if (_disposed || !mounted) return;
-    
+
     _safeSetState(() {
       _isLoadingStages = true;
     });
@@ -151,12 +156,12 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
     try {
       // Use the existing widget.user instance
       final user = widget.user.user.value;
-      
+
       print('User object: $user');
       print('Access token: ${user?.accessToken}');
       print('Token type: ${user?.tokenType}');
       print('Variable ID: ${user?.variableId}');
-      
+
       if (user == null) {
         print('User is null');
         if (mounted) {
@@ -170,7 +175,7 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
         }
         return;
       }
-      
+
       if (user.accessToken == null || user.accessToken!.isEmpty) {
         print('Access token is null or empty: ${user.accessToken}');
         if (mounted) {
@@ -187,7 +192,7 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
 
       int? teacherId = user.variableId;
       print('Teacher ID: $teacherId');
-      
+
       if (teacherId == null) {
         print('Teacher ID is null');
         if (mounted) {
@@ -201,9 +206,10 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
         }
         return;
       }
-      
+
       final response = await http.get(
-        Uri.parse('https://khayalstudio.com/siraj/api/stagefromteacher?id=$teacherId'),
+        Uri.parse(
+            'https://khayalstudio.com/siraj/api/stagefromteacher?id=$teacherId'),
         headers: {
           'Authorization': '${user.tokenType ?? 'Bearer'} ${user.accessToken}',
           'Accept': 'application/json',
@@ -275,7 +281,7 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
 
   Future<void> _pickFile() async {
     if (_disposed || !mounted) return;
-    
+
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -304,7 +310,7 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
 
   Future<void> _submitNotification() async {
     if (_disposed || !mounted) return;
-    
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -328,7 +334,7 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
 
     try {
       final user = widget.user.user.value;
-      
+
       if (user?.accessToken == null || user?.accessToken?.isEmpty == true) {
         print('Access token is null or empty during submission');
         if (mounted) {
@@ -357,9 +363,11 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
       // Add form fields
       request.fields['subject_id'] = _selectedSubject!.id.toString();
       request.fields['announcement_title'] = _titleController.text.trim();
-      request.fields['announcement_description'] = _descriptionController.text.trim();
+      request.fields['announcement_description'] =
+          _descriptionController.text.trim();
       request.fields['announcement_type'] = 'scientific';
-      request.fields['created_by'] = user.variableId?.toString() ?? '${user.variableId}';
+      request.fields['created_by'] =
+          user.variableId?.toString() ?? '${user.variableId}';
 
       print('Submitting with fields: ${request.fields}');
 
@@ -372,10 +380,11 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
         print('Added file: ${_selectedFile!.path}');
       }
 
-      final response = await request.send().timeout(const Duration(seconds: 60));
-      
+      final response =
+          await request.send().timeout(const Duration(seconds: 60));
+
       if (_disposed || !mounted) return;
-      
+
       final responseBody = await response.stream.bytesToString();
 
       print('Submit response status: ${response.statusCode}');
@@ -392,7 +401,7 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
             colorText: Colors.white,
           );
         }
-        
+
         // Clear form
         if (mounted && !_disposed) {
           _titleController.clear();
@@ -404,10 +413,11 @@ class _SendScientificNotificationScreenState extends State<SendScientificNotific
             _selectedFileName = null;
           });
         }
-        
+
         // Go back to previous screen
         if (mounted) {
-Navigator.of(context).pop();        }
+          Navigator.of(context).pop();
+        }
       } else if (response.statusCode == 401) {
         print('Unauthorized during submission - logging out user');
         if (mounted) {
@@ -477,28 +487,28 @@ Navigator.of(context).pop();        }
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Debug info (remove this in production)
-              Container(
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: Colors.yellow.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Debug Info:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text('User ID: ${widget.user.user.value?.variableId ?? "null"}'),
-                    Text('Access Token: ${widget.user.user.value?.accessToken?.isNotEmpty == true ? "Present" : "null/empty"}'),
-                    Text('Token Type: ${widget.user.user.value?.tokenType ?? "null"}'),
-                    Text('Is Authenticated: ${widget.user.isAuthenticated}'),
-                    Text('Stages Count: ${_stages.length}'),
-                    Text('Loading Stages: $_isLoadingStages'),
-                  ],
-                ),
-              ),
-              
+              // Container(
+              //   padding: const EdgeInsets.all(16),
+              //   margin: const EdgeInsets.only(bottom: 20),
+              //   decoration: BoxDecoration(
+              //     color: Colors.yellow.shade100,
+              //     borderRadius: BorderRadius.circular(8),
+              //     border: Border.all(color: Colors.orange),
+              //   ),
+              //   child: Column(
+              //     crossAxisAlignment: CrossAxisAlignment.start,
+              //     children: [
+              //       Text('Debug Info:', style: TextStyle(fontWeight: FontWeight.bold)),
+              //       Text('User ID: ${widget.user.user.value?.variableId ?? "null"}'),
+              //       Text('Access Token: ${widget.user.user.value?.accessToken?.isNotEmpty == true ? "Present" : "null/empty"}'),
+              //       Text('Token Type: ${widget.user.user.value?.tokenType ?? "null"}'),
+              //       Text('Is Authenticated: ${widget.user.isAuthenticated}'),
+              //       Text('Stages Count: ${_stages.length}'),
+              //       Text('Loading Stages: $_isLoadingStages'),
+              //     ],
+              //   ),
+              // ),
+
               // Stage Selection
               Container(
                 decoration: BoxDecoration(
@@ -512,7 +522,8 @@ Navigator.of(context).pop();        }
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: _isLoadingStages
                     ? const Padding(
                         padding: EdgeInsets.all(16.0),
@@ -524,7 +535,8 @@ Navigator.of(context).pop();        }
                         decoration: const InputDecoration(
                           labelText: 'اختر المرحلة الدراسية',
                           border: InputBorder.none,
-                          prefixIcon: Icon(Icons.class_, color: Color(0xFF2E7D7A)),
+                          prefixIcon:
+                              Icon(Icons.class_, color: Color(0xFF2E7D7A)),
                         ),
                         value: _selectedStage,
                         items: _stages.map((Stage stage) {
@@ -537,7 +549,8 @@ Navigator.of(context).pop();        }
                           if (!_disposed) {
                             _safeSetState(() {
                               _selectedStage = newValue;
-                              _selectedSubject = null; // Reset subject when stage changes
+                              _selectedSubject =
+                                  null; // Reset subject when stage changes
                             });
                           }
                         },
@@ -564,7 +577,8 @@ Navigator.of(context).pop();        }
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: DropdownButtonFormField<Subject>(
                   decoration: const InputDecoration(
                     labelText: 'اختر المادة الدراسية',
@@ -573,18 +587,21 @@ Navigator.of(context).pop();        }
                   ),
                   value: _selectedSubject,
                   items: _selectedStage?.subjects.map((Subject subject) {
-                    return DropdownMenuItem<Subject>(
-                      value: subject,
-                      child: Text(subject.subjectName),
-                    );
-                  }).toList() ?? [],
-                  onChanged: _selectedStage == null ? null : (Subject? newValue) {
-                    if (!_disposed) {
-                      _safeSetState(() {
-                        _selectedSubject = newValue;
-                      });
-                    }
-                  },
+                        return DropdownMenuItem<Subject>(
+                          value: subject,
+                          child: Text(subject.subjectName),
+                        );
+                      }).toList() ??
+                      [],
+                  onChanged: _selectedStage == null
+                      ? null
+                      : (Subject? newValue) {
+                          if (!_disposed) {
+                            _safeSetState(() {
+                              _selectedSubject = newValue;
+                            });
+                          }
+                        },
                   validator: (value) {
                     if (value == null) {
                       return 'يرجى اختيار المادة الدراسية';
@@ -651,7 +668,8 @@ Navigator.of(context).pop();        }
                     hintText: 'أدخل محتوى التبليغ العلمي',
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.all(16),
-                    prefixIcon: Icon(Icons.description, color: Color(0xFF2E7D7A)),
+                    prefixIcon:
+                        Icon(Icons.description, color: Color(0xFF2E7D7A)),
                     alignLabelWithHint: true,
                   ),
                   validator: (value) {
@@ -681,17 +699,20 @@ Navigator.of(context).pop();        }
                   ],
                 ),
                 child: ListTile(
-                  leading: const Icon(Icons.attach_file, color: Color(0xFF2E7D7A)),
+                  leading:
+                      const Icon(Icons.attach_file, color: Color(0xFF2E7D7A)),
                   title: Text(
                     _selectedFileName ?? 'اختر ملف مرفق (اختياري)',
                     style: TextStyle(
-                      color: _selectedFileName != null ? Colors.black : Colors.grey,
+                      color: _selectedFileName != null
+                          ? Colors.black
+                          : Colors.grey,
                     ),
                   ),
-                  subtitle: _selectedFileName != null 
+                  subtitle: _selectedFileName != null
                       ? const Text('اضغط لتغيير الملف')
                       : const Text('PDF, DOC, صورة'),
-                  trailing: _selectedFile != null 
+                  trailing: _selectedFile != null
                       ? IconButton(
                           icon: const Icon(Icons.clear, color: Colors.red),
                           onPressed: () {
@@ -734,7 +755,8 @@ Navigator.of(context).pop();        }
                             ),
                           ),
                           SizedBox(width: 12),
-                          Text('جاري الإرسال...', style: TextStyle(fontSize: 16)),
+                          Text('جاري الإرسال...',
+                              style: TextStyle(fontSize: 16)),
                         ],
                       )
                     : const Row(
@@ -742,7 +764,8 @@ Navigator.of(context).pop();        }
                         children: [
                           Icon(Icons.send),
                           SizedBox(width: 8),
-                          Text('إرسال التبليغ العلمي', style: TextStyle(fontSize: 16)),
+                          Text('إرسال التبليغ العلمي',
+                              style: TextStyle(fontSize: 16)),
                         ],
                       ),
               ),
